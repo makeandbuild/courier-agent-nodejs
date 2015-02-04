@@ -8,6 +8,7 @@ loginArgs ={
     headers:{"username":"test@test.com","password":"test"} // request headers
 };
 
+
 restClient.get("http://localhost:9000/api/tokens", loginArgs,
     function(data, response){
         // parsed response body as js object
@@ -26,9 +27,15 @@ restClient.get("http://localhost:9000/api/tokens", loginArgs,
         else {
             console.log("Error logging in.  Response code: " + response.statusCode);
         }
+    }).on('error', function(err) {
+        console.log('login error: failed to get token', err.request.options);
+        //[Lindsay Thurmond:2/4/15] TODO: schedule for retry in 2 mins
     });
 
+// register agent
+//[Lindsay Thurmond:2/4/15] TODO:
 
+// listen for detections
 Bleacon.on('discover', function(bleacon) {
     console.log('bleacon found: ' + JSON.stringify(bleacon));
 });

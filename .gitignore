@@ -30,3 +30,7 @@ node_modules
 # IntelliJ
 *.iml
 .idea
+atlassian-ide-plugin.xml
+
+# OSX
+.DS_Store

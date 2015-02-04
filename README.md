@@ -8,10 +8,10 @@ Instructions for installing and running on raspberry pi can be found within rasp
 ## Setup
 
 ```
-npm install bleacon
+npm install
 ```
 
 ## Run
 ```
-node agent.js
+node app.js
 ```
