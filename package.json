@@ -4,10 +4,12 @@
   "description": "Agent for detecting beacons and sending detection to M&B Courier service.  Built using nodejs",
   "private": true,
   "author": "Tom Elrod <tom.elrod@makeandbuild.com>",
-  "contributors":[{
-    "name": "Lindsay Thurmond",
-    "email": "lindsay.thurmond@makeandbuild.com"
-  }],
+  "contributors": [
+    {
+      "name": "Lindsay Thurmond",
+      "email": "lindsay.thurmond@makeandbuild.com"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/makeandbuild/courier-agent-nodejs.git"
@@ -16,10 +18,11 @@
   "keywords": [
     "ibeacon"
   ],
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
-    "bleacon": "~0.2.0",
-    "node-rest-client": "~1.4.4"
+    "bleacon": "^0.2.0",
+    "getmac": "^1.0.6",
+    "rest": "^1.3.0",
+    "when": "^3.7.2"
   }
 }

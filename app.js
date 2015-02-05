@@ -1,47 +1,89 @@
-var Client = require('node-rest-client').Client;
-var Bleacon = require('bleacon');
+'use strict';
+
+var config = require('./config.js');
+
+var bleacon = require('bleacon');
+var rest = require('rest');
+var when = require('when');
+var getmac = require('getmac');
+var nodefn = require('when/node');
+var mime = require('rest/interceptor/mime');
+
+var token;
+var tokenExpires;
+
+var restClient = rest.wrap(mime);
 
 
-restClient = new Client();
+// get token
+restClient({
+    path: config.baseUrl + '/api/tokens',
+    headers: {"username": "test@test.com", "password": "test"}
+})
+    // then register
+    .then(function (response) {
+        token = response.entity.token;
+        console.log(token);
+        tokenExpires = response.entity.expires;
 
-loginArgs ={
-    headers:{"username":"test@test.com","password":"test"} // request headers
-};
+        return agentDataPromise();
+    })
+    .then(function (agentData) {
+        console.log(agentData);
 
+        return restClient({ method: 'POST', path: config.baseUrl + '/api/agents', entity : agentData,
+            headers: { "x-access-token": token , "Content-Type" : 'application/json'}});
+    })
+    .then(function (response) {
 
-restClient.get("http://localhost:9000/api/tokens", loginArgs,
-    function(data, response){
-        // parsed response body as js object
-        console.log("data: ");
-        console.log(data);
-        // raw response
-        console.log("response: ");
-        console.log(response);
+        console.log(response.entity);
 
-        if(response.statusCode == 200) {
-            console.log("200 response code");
-            // get token
-            var token = data.token;
-            console.log("token: " + token);
+        if(response.status.code == 200) {
+            console.log('Registered agent: ' + response.entity);
+        } else {
+            console.log('Failed to register agent.  Status code: '  + response.status.code);
         }
-        else {
-            console.log("Error logging in.  Response code: " + response.statusCode);
-        }
-    }).on('error', function(err) {
-        console.log('login error: failed to get token', err.request.options);
-        //[Lindsay Thurmond:2/4/15] TODO: schedule for retry in 2 mins
+
+        startScanning();
+
+    }, function (err) {
+        console.log('Error: ' + err);
+    }).otherwise(function (err) {
+        console.log('Unexpected Error: ' + err);
     });
 
-// register agent
-//[Lindsay Thurmond:2/4/15] TODO:
+
+function agentDataPromise() {
+    var defer = when.defer();
+
+    nodefn.lift(getmac.getMac)()
+        .then(function (macAddress) {
+            var agent =  {
+                customId: macAddress,
+                name: config.agent.name,
+                location: config.agent.location,
+                capabilities: config.agent.capabilities
+            }
+            defer.resolve(agent);
+
+        }, function(err){
+            defer.reject(err);
+        });
+
+    return defer.promise;
+}
 
 // listen for detections
-Bleacon.on('discover', function(bleacon) {
-    console.log('bleacon found: ' + JSON.stringify(bleacon));
-});
+function startScanning() {
+    bleacon.on('discover', function (bleacon) {
+        console.log('bleacon found: ' + JSON.stringify(bleacon));
+    });
+}
 
 //TODO: Need to pick a M&B UUID to narrow false detections
 //var uuid = 'e2c56db5dffb48d2b060d0f5a71096e0';
 //var major = 0; // 0 - 65535
 //var minor = 0; // 0 - 65535
-Bleacon.startScanning(/*uuid,major,minor*/);
+bleacon.startScanning(/*uuid,major,minor*/);
+
+//exports = module.exports;
