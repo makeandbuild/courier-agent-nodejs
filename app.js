@@ -9,6 +9,7 @@ var getmac = require('getmac');
 var nodefn = require('when/node');
 var mime = require('rest/interceptor/mime');
 var later = require('later');
+var io = require('socket.io-client');
 
 var detectionService = require('./detection.service');
 
@@ -21,6 +22,16 @@ var agentId;
 
 // get responses as json objects instead strings
 var restClient = rest.wrap(mime);
+
+//[Lindsay Thurmond:2/5/15] TODO: only connect if socket in config
+var socket = io('http://localhost:9000');
+
+socket.on('connect', function(){
+    console.log('socket connect');
+});
+socket.on('disconnect', function(){
+    console.log('socket disconnect');
+});
 
 
 // get token
@@ -37,17 +48,17 @@ restClient({
         return agentDataPromise();
     })
     .then(function (agentData) {
-        console.log(agentData);
+        console.log('POSTing ' + JSON.stringify(agentData));
 
         return restClient({ method: 'POST', path: config.baseUrl + '/api/agents', entity : agentData,
             headers: { "x-access-token": token , "Content-Type" : 'application/json'}});
     })
     .then(function (response) {
 
-        console.log(response.entity);
+        console.log('Agent response: ' + JSON.stringify(response.entity));
 
         if(response.status.code == 200) {
-            console.log('Registered agent: ' + response.entity);
+//            console.log('Registered agent: ' + JSON.stringify(response.entity));
         } else {
             console.log('Failed to register agent.  Status code: '  + response.status.code);
         }
@@ -57,7 +68,7 @@ restClient({
     }, function (err) {
         console.log('Error: ' + JSON.stringify(err));
     }).otherwise(function (err) {
-        console.log('Unexpected Error: ' + err);
+        console.log('Unexpected Error: ' + JSON.stringify(err));
     });
 
 
@@ -96,7 +107,7 @@ function startScanning() {
 
         // Format = {"uuid":"b9407f30f5f8466eaff925556b57fe6d","major":19602,"minor":10956,"measuredPower":-74,"rssi":-63,"accuracy":0.5746081071882325,"proximity":"near"}
 
-        console.log(JSON.stringify(bleacon));
+//        console.log(JSON.stringify(bleacon));
 
         detectionService.processDetection({
             agentId : agentId,
@@ -116,15 +127,22 @@ function startScanning() {
 function sendDetections() {
 
     var detections = detectionService.getDetections();
-
     if (detections && detections.length > 0) {
-//        var detectionsCopy = detections.slice(0);
-//        detections = [];
 
-        restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detections,
-            headers: { "x-access-token": token, "Content-Type": 'application/json'}});
+        if (config.detectionProtocol === 'HTTP') {
+            restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detections,
+                headers: { "x-access-token": token, "Content-Type": 'application/json'}});
+        }
+        else if (config.detectionProtocol === 'socket') {
+            try {
+                socket.emit('beacondetections', detections);
+            } catch (e) {
+                console.log('Error emitting detection');
+            }
+        } else {
+            console.log('WARNING - DETECTION TRANSFER PROTOCOL NOT SET.  NO DETECTIONS WILL BE SENT TO THE SERVER!!!!!!');
+        }
     }
-
 }
 
 
