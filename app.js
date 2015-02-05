@@ -10,6 +10,8 @@ var nodefn = require('when/node');
 var mime = require('rest/interceptor/mime');
 var later = require('later');
 
+var detectionService = require('./detection.service');
+
 var token;
 var tokenExpires;
 /**
@@ -85,55 +87,41 @@ function agentDataPromise() {
 
 // listen for detections
 function startScanning() {
+
+    // schedule the batched detections to be sent to the server
+    var sched = later.parse.recur().every(config.batchSendFrequency).second();
+    later.setInterval(sendDetections, sched);
+
     bleacon.on('discover', function (bleacon) {
 
         // Format = {"uuid":"b9407f30f5f8466eaff925556b57fe6d","major":19602,"minor":10956,"measuredPower":-74,"rssi":-63,"accuracy":0.5746081071882325,"proximity":"near"}
 
         console.log(JSON.stringify(bleacon));
-        processDetection(bleacon);
 
-        // schedule the batched detections to be sent to the server
-        var sched = later.parse.recur().every(config.batchSendFrequency).second();
-        later.setInterval(sendDetections, sched);
+        detectionService.processDetection({
+            agentId : agentId,
+            time : Date.now(),
+            uuid : bleacon.uuid,
+            major : bleacon.major,
+            minor : bleacon.minor,
+            tx : bleacon.measuredPower,
+            rssi : bleacon.rssi,
+            proximity : bleacon.accuracy
+        });
+
     });
 }
 
-/**
- * We get Detections in the format :
- * {"uuid":"b9407f30f5f8466eaff925556b57fe6d","major":19602,"minor":10956,"measuredPower":-74,"rssi":-63,"accuracy":0.5746081071882325,"proximity":"near"}
- *
- * We need to convert them to:
- * {}
- *
- * And
- *
- *
- * @param detection
- */
-function processDetection(detection) {
-    var convertedDetection = {
-        agentId : agentId,
-        time : Date.now(),
-        uuid : detection.uuid,
-        major : detection.major,
-        minor : detection.minor,
-        tx : detection.measuredPower,
-        rssi : detection.rssi,
-        proximity : detection.accuracy
-    }
-
-    detections.push(convertedDetection);
-}
-
-var detections = [];
 
 function sendDetections() {
 
-    if (detections && detections.length > 0) {
-        var detectionsCopy = detections.slice(0);
-        detections = [];
+    var detections = detectionService.getDetections();
 
-        restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detectionsCopy,
+    if (detections && detections.length > 0) {
+//        var detectionsCopy = detections.slice(0);
+//        detections = [];
+
+        restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detections,
             headers: { "x-access-token": token, "Content-Type": 'application/json'}});
     }
 
