@@ -8,10 +8,16 @@ var when = require('when');
 var getmac = require('getmac');
 var nodefn = require('when/node');
 var mime = require('rest/interceptor/mime');
+var later = require('later');
 
 var token;
 var tokenExpires;
+/**
+ * this should be the mac address
+ */
+var agentId;
 
+// get responses as json objects instead strings
 var restClient = rest.wrap(mime);
 
 
@@ -47,7 +53,7 @@ restClient({
         startScanning();
 
     }, function (err) {
-        console.log('Error: ' + err);
+        console.log('Error: ' + JSON.stringify(err));
     }).otherwise(function (err) {
         console.log('Unexpected Error: ' + err);
     });
@@ -58,6 +64,10 @@ function agentDataPromise() {
 
     nodefn.lift(getmac.getMac)()
         .then(function (macAddress) {
+
+            // save for later use
+            agentId = macAddress;
+
             var agent =  {
                 customId: macAddress,
                 name: config.agent.name,
@@ -76,9 +86,59 @@ function agentDataPromise() {
 // listen for detections
 function startScanning() {
     bleacon.on('discover', function (bleacon) {
-        console.log('bleacon found: ' + JSON.stringify(bleacon));
+
+        // Format = {"uuid":"b9407f30f5f8466eaff925556b57fe6d","major":19602,"minor":10956,"measuredPower":-74,"rssi":-63,"accuracy":0.5746081071882325,"proximity":"near"}
+
+        console.log(JSON.stringify(bleacon));
+        processDetection(bleacon);
+
+        // schedule the batched detections to be sent to the server
+        var sched = later.parse.recur().every(config.batchSendFrequency).second();
+        later.setInterval(sendDetections, sched);
     });
 }
+
+/**
+ * We get Detections in the format :
+ * {"uuid":"b9407f30f5f8466eaff925556b57fe6d","major":19602,"minor":10956,"measuredPower":-74,"rssi":-63,"accuracy":0.5746081071882325,"proximity":"near"}
+ *
+ * We need to convert them to:
+ * {}
+ *
+ * And
+ *
+ *
+ * @param detection
+ */
+function processDetection(detection) {
+    var convertedDetection = {
+        agentId : agentId,
+        time : Date.now(),
+        uuid : detection.uuid,
+        major : detection.major,
+        minor : detection.minor,
+        tx : detection.measuredPower,
+        rssi : detection.rssi,
+        proximity : detection.accuracy
+    }
+
+    detections.push(convertedDetection);
+}
+
+var detections = [];
+
+function sendDetections() {
+
+    if (detections && detections.length > 0) {
+        var detectionsCopy = detections.slice(0);
+        detections = [];
+
+        restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detectionsCopy,
+            headers: { "x-access-token": token, "Content-Type": 'application/json'}});
+    }
+
+}
+
 
 //TODO: Need to pick a M&B UUID to narrow false detections
 //var uuid = 'e2c56db5dffb48d2b060d0f5a71096e0';

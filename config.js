@@ -8,13 +8,7 @@ module.exports = {
         name : 'Great Room',
         location: 'Great Room',
         capabilities : ['audio', 'video']
-
-//        customId=test1234
-//        name=Super Rest Rig
-//        location=Great Room
-//        capabilities=[audio,video]
-//        mode=1
-//        frequency=2
-    }
+    },
+    batchSendFrequency : 2 // number of seconds
 
 }
