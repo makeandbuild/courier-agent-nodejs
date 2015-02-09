@@ -24,7 +24,7 @@ var agentId;
 var restClient = rest.wrap(mime);
 
 //[Lindsay Thurmond:2/5/15] TODO: only connect if socket in config
-var socket = io('http://localhost:9000');
+var socket = io('http://courier.makeandbuild.com:9000');
 
 socket.on('connect', function(){
     console.log('socket connect');
@@ -99,6 +99,8 @@ function agentDataPromise() {
 // listen for detections
 function startScanning() {
 
+	console.log("iBeacon scanning started");
+
     // schedule the batched detections to be sent to the server
     var sched = later.parse.recur().every(config.batchSendFrequency).second();
     later.setInterval(sendDetections, sched);
@@ -107,7 +109,7 @@ function startScanning() {
 
         // Format = {"uuid":"b9407f30f5f8466eaff925556b57fe6d","major":19602,"minor":10956,"measuredPower":-74,"rssi":-63,"accuracy":0.5746081071882325,"proximity":"near"}
 
-//        console.log(JSON.stringify(bleacon));
+		console.log(JSON.stringify(bleacon));
 
         detectionService.processDetection({
             agentId : agentId,
