@@ -6,7 +6,7 @@ var SOCKET_PROTOCOL = 'socket';
 
 module.exports = {
 
-    baseUrl: 'http://courier.makeandbuild.com:9000',
+    baseUrl: 'http://courier.makeandbuildatl.com:9000',
 
     agent: {
         name : 'Great Room',

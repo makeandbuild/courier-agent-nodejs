@@ -24,7 +24,7 @@ var agentId;
 var restClient = rest.wrap(mime);
 
 //[Lindsay Thurmond:2/5/15] TODO: only connect if socket in config
-var socket = io('http://courier.makeandbuild.com:9000');
+var socket = io('http://courier.makeandbuildatl.com:9000');
 
 socket.on('connect', function(){
     console.log('socket connect');
