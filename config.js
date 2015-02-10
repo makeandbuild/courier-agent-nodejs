@@ -17,5 +17,5 @@ module.exports = {
     batchSendFrequency : 2, // number of seconds
     detectionProtocol: SOCKET_PROTOCOL,
     beaconExpireFrequency : 10, // number of seconds
-    numPastDetectionsToAvg: 5 // number of previous detections to smooth
+    numPastDetectionsToAvg: 6 // number of previous detections to smooth
 }

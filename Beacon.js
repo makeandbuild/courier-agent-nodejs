@@ -37,12 +37,22 @@ Beacon.prototype.averageProximities = function() {
     // sometimes stationary beacons randomly blip to a different proximity - we'll drop
     // the highest and lowest value before averaging to try to keep our average stable
 
-    var max = _.max(this.proximities);
-    var min = _.min(this.proximities);
-    var proxToAvg = _.without(this.proximities, max, min);
+    if (this.proximities.length === config.numPastDetectionsToAvg) {
+        var proxToAvg = _.sortBy(this.proximities, function(num){ return num;});
+        console.log('sorted %s', JSON.stringify(proxToAvg));
+        proxToAvg = _.drop(proxToAvg); // drop the first element
+        proxToAvg = _.dropRight(proxToAvg); // drop the last element
+        this.proximity = average(proxToAvg);
+        console.log('new proximity 1 %s %s', this.proximity, JSON.stringify(proxToAvg));
+    } else {
+        this.proximity = average(this.proximities);
+        console.log('new proximity 2 %s', this.proximity);
+    }
+}
 
-    var sum = _.reduce(proxToAvg, function(sum, n) { return sum + n; });
-    this.proximity = (sum / proxToAvg.length).toFixed(2);
+function average(array) {
+    var sum = _.reduce(array, function(sum, n) { return sum + n; });
+    return (sum / array.length).toFixed(2);
 }
 
 /**
