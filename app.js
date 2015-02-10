@@ -28,10 +28,10 @@ var restClient = rest.wrap(mime);
 var socket = io(config.baseUrl + '/agent');
 
 socket.on('connect', function(){
-    console.log('socket connect');
+    console.log('Agent socket connect');
 });
 socket.on('disconnect', function(){
-    console.log('socket disconnect');
+    console.log('Agent socket disconnect');
 });
 
 
@@ -90,7 +90,8 @@ function agentDataPromise() {
                 customId: macAddress,
                 name: config.agent.name,
                 location: config.agent.location,
-                capabilities: config.agent.capabilities
+                capabilities: config.agent.capabilities,
+                range: config.agent.range
             }
             defer.resolve(agent);
 

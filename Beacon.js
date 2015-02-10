@@ -31,11 +31,18 @@ Beacon.prototype.update = function(detection) {
  */
 Beacon.prototype.averageProximities = function() {
 
-    // only keep 10 most recent detections
-    this.proximities = _.takeRight(this.proximities, 10);
+    // only keep 'n' most recent detections
+    this.proximities = _.takeRight(this.proximities, config.numPastDetectionsToAvg);
 
-    var sum = _.reduce(this.proximities, function(sum, n) { return sum + n; });
-    this.proximity = (sum / this.proximities.length).toFixed(2);
+    // sometimes stationary beacons randomly blip to a different proximity - we'll drop
+    // the highest and lowest value before averaging to try to keep our average stable
+
+    var max = _.max(this.proximities);
+    var min = _.min(this.proximities);
+    var proxToAvg = _.without(this.proximities, max, min);
+
+    var sum = _.reduce(proxToAvg, function(sum, n) { return sum + n; });
+    this.proximity = (sum / proxToAvg.length).toFixed(2);
 }
 
 /**

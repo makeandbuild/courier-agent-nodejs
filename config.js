@@ -11,10 +11,11 @@ module.exports = {
 
     agent: {
         name : 'Great Room',
-        location: 'Great Room'
+        location: 'Great Room',
+        range: 2.1 // range considered for an enter event
     },
     batchSendFrequency : 2, // number of seconds
     detectionProtocol: SOCKET_PROTOCOL,
-    beaconExpireFrequency : 10 // number of seconds
-
+    beaconExpireFrequency : 10, // number of seconds
+    numPastDetectionsToAvg: 5 // number of previous detections to smooth
 }
