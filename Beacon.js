@@ -39,14 +39,11 @@ Beacon.prototype.averageProximities = function() {
 
     if (this.proximities.length === config.numPastDetectionsToAvg) {
         var proxToAvg = _.sortBy(this.proximities, function(num){ return num;});
-        console.log('sorted %s', JSON.stringify(proxToAvg));
         proxToAvg = _.drop(proxToAvg); // drop the first element
         proxToAvg = _.dropRight(proxToAvg); // drop the last element
         this.proximity = average(proxToAvg);
-        console.log('new proximity 1 %s %s', this.proximity, JSON.stringify(proxToAvg));
     } else {
         this.proximity = average(this.proximities);
-        console.log('new proximity 2 %s', this.proximity);
     }
 }
 
