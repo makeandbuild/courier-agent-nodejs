@@ -19,9 +19,7 @@ var beaconDictionary = {};
  * @param detection
  */
 module.exports.processDetection = function processDetection(detection) {
-
     storeDetection(detection);
-    removeExpired();
 }
 
 function storeDetection(detection) {
@@ -31,7 +29,7 @@ function storeDetection(detection) {
     var existingBeacon = beaconDictionary[beacon.key()];
     if (existingBeacon) {
         // update
-        beacon.update(detection);
+        existingBeacon.update(detection);
 
     } else {
         beaconDictionary[beacon.key()] = beacon;
@@ -41,7 +39,7 @@ function storeDetection(detection) {
 /**
  * Remove beacons we no longer see
  */
-function removeExpired() {
+module.exports.removedExpired = function removeExpired() {
     var keys = _.keys(beaconDictionary);
 
     _.forEach(keys, function(key) {

@@ -19,12 +19,13 @@ var tokenExpires;
  * this should be the mac address
  */
 var agentId;
+var agentSettings;
 
 // get responses as json objects instead strings
 var restClient = rest.wrap(mime);
 
 //[Lindsay Thurmond:2/5/15] TODO: only connect if socket in config
-var socket = io('http://courier.makeandbuildatl.com:9000');
+var socket = io(config.baseUrl + '/agent');
 
 socket.on('connect', function(){
     console.log('socket connect');
@@ -58,6 +59,9 @@ restClient({
         console.log('Agent response: ' + JSON.stringify(response.entity));
 
         if(response.status.code == 200) {
+            // store info about ourself
+            agentSettings = response.entity;
+
 //            console.log('Registered agent: ' + JSON.stringify(response.entity));
         } else {
             console.log('Failed to register agent.  Status code: '  + response.status.code);
@@ -121,7 +125,6 @@ function startScanning() {
             rssi : bleacon.rssi,
             proximity : bleacon.accuracy
         });
-
     });
 }
 
@@ -129,23 +132,29 @@ function startScanning() {
 function sendDetections() {
 
 	console.log("sendDetections()");
+    // expire old detections
+    detectionService.removedExpired();
+
     var detections = detectionService.getDetections();
     console.log("Sending Detections: " + JSON.stringify(detections));
-    if (detections && detections.length > 0) {
+    if (detections.length == 0) {
+        // we need to identify which agent doesn't see any detections
+        detections.push({agentId: agentSettings.customId});
+    }
 
-        if (config.detectionProtocol === 'HTTP') {
-            restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detections,
-                headers: { "x-access-token": token, "Content-Type": 'application/json'}});
+    if (config.detectionProtocol === 'HTTP') {
+        restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detections,
+            headers: { "x-access-token": token, "Content-Type": 'application/json'}});
+    }
+    else if (config.detectionProtocol === 'socket') {
+        try {
+            // console.log('Sending: ' + JSON.stringify(detections));
+            socket.emit('beacondetections', detections);
+        } catch (e) {
+            console.log('Error emitting detection');
         }
-        else if (config.detectionProtocol === 'socket') {
-            try {
-                socket.emit('beacondetections', detections);
-            } catch (e) {
-                console.log('Error emitting detection');
-            }
-        } else {
-            console.log('WARNING - DETECTION TRANSFER PROTOCOL NOT SET.  NO DETECTIONS WILL BE SENT TO THE SERVER!!!!!!');
-        }
+    } else {
+        console.log('WARNING - DETECTION TRANSFER PROTOCOL NOT SET.  NO DETECTIONS WILL BE SENT TO THE SERVER!!!!!!');
     }
 }
 
@@ -155,5 +164,3 @@ function sendDetections() {
 //var major = 0; // 0 - 65535
 //var minor = 0; // 0 - 65535
 bleacon.startScanning(/*uuid,major,minor*/);
-
-//exports = module.exports;

@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var config = require('./config.js');
 
 module.exports = Beacon;
 
@@ -20,7 +21,9 @@ Beacon.prototype.update = function(detection) {
     this.proximities.push(detection.proximity);
     this.averageProximities();
 
+//    var oldTime = this.time;
     this.time = detection.time;
+//    console.log('old time: [%s], new time: [%s], difference: [%s]', oldTime, this.time, (oldTime - this.time)/1000.0);
 }
 
 /**
@@ -66,9 +69,14 @@ Beacon.prototype.payload = function() {
  */
 Beacon.prototype.isExpired = function() {
 
-    // 1 second ago
-    var seconds = 10;
-    var cutoff = Date.now() - (seconds * 1000);
+    var secondsAgo = config.beaconExpireFrequency;
+    var now = Date.now();
+    var cutoffTime = now - (secondsAgo * 1000);
 
-    return this.time < cutoff;
+    var isExpired = this.time < cutoffTime;
+    if (isExpired) {
+//        console.log('EXPIRED! now: [%s], cutoff: [%s], last seen: [%s]', now, tenSecondsAgo, this.time);
+        console.log('EXPIRED! now: [%s], cutoff: [%s], last seen: [%s]', now, (now - cutoffTime)/1000.0, (now - this.time)/1000.0);
+    }
+    return isExpired;
 }
