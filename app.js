@@ -137,7 +137,7 @@ function sendDetections() {
     detectionService.removedExpired();
 
     var detections = detectionService.getDetections();
-    console.log("Sending Detections: " + JSON.stringify(detections));
+//    console.log("Sending Detections: " + JSON.stringify(detections));
     if (detections.length == 0) {
         // we need to identify which agent doesn't see any detections
         detections.push({agentId: agentSettings.customId});
