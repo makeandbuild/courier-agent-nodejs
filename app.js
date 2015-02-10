@@ -58,14 +58,15 @@ restClient({
 
         console.log('Agent response: ' + JSON.stringify(response.entity));
 
-        if(response.status.code == 200) {
-            // store info about ourself
-            agentSettings = response.entity;
-
+        var statusCode = response.status.code;
+        if(statusCode >= 200 && statusCode < 300) {
 //            console.log('Registered agent: ' + JSON.stringify(response.entity));
         } else {
             console.log('Failed to register agent.  Status code: '  + response.status.code);
         }
+
+        // store info about ourself
+        agentSettings = response.entity;
 
         startScanning();
 

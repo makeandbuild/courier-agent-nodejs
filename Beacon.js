@@ -76,7 +76,7 @@ Beacon.prototype.isExpired = function() {
     var isExpired = this.time < cutoffTime;
     if (isExpired) {
 //        console.log('EXPIRED! now: [%s], cutoff: [%s], last seen: [%s]', now, tenSecondsAgo, this.time);
-        console.log('EXPIRED! now: [%s], cutoff: [%s], last seen: [%s]', now, (now - cutoffTime)/1000.0, (now - this.time)/1000.0);
+        console.log('EXPIRED %s! now: %s, cutoff: %s, last seen: %s', this.key(), now, (now - cutoffTime)/1000.0, (now - this.time)/1000.0);
     }
     return isExpired;
 }
