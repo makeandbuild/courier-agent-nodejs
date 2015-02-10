@@ -128,7 +128,9 @@ function startScanning() {
 
 function sendDetections() {
 
+	console.log("sendDetections()");
     var detections = detectionService.getDetections();
+    console.log("Sending Detections: " + JSON.stringify(detections));
     if (detections && detections.length > 0) {
 
         if (config.detectionProtocol === 'HTTP') {
