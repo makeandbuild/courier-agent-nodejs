@@ -12,7 +12,7 @@ module.exports = {
     agent: {
         name : 'Great Room',
         location: 'Great Room',
-        range: 2.1 // range considered for an enter event
+        range: 1.5 // range considered for an enter event
     },
     batchSendFrequency : 2, // number of seconds
     detectionProtocol: SOCKET_PROTOCOL,
