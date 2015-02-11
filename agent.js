@@ -86,22 +86,25 @@ restClient({
 function agentDataPromise() {
     var defer = when.defer();
 
+    var agent =  {
+        name: config.agent.name,
+        location: config.agent.location,
+        capabilities: config.agent.capabilities,
+        range: config.agent.range
+    }
+
     nodefn.lift(getmac.getMac)()
         .then(function (macAddress) {
-
-            // save for later use
-            agentId = macAddress;
-
-            var agent =  {
-                customId: macAddress,
-                name: config.agent.name,
-                location: config.agent.location,
-                capabilities: config.agent.capabilities,
-                range: config.agent.range
+            agent.customId = macAddress;
+            return nodefn.lift(require('dns').lookup)(require('os').hostname());
+        })
+        .then(function (add) {
+            console.log('Ip Address: %s', add);
+            if (add && add.length > 0) {
+                agent.ipAddress = add[0];
             }
             defer.resolve(agent);
-
-        }, function(err){
+        }, function (err) {
             defer.reject(err);
         });
 
