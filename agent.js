@@ -29,6 +29,12 @@ var socket = io(config.baseUrl + '/agent');
 
 socket.on('connect', function(){
     console.log('Agent socket connect');
+
+    // give the server details about ourselves
+    getmac.getMac(function(err, macAddress) {
+        socket.emit('register',  { customId : macAddress });
+    });
+
 });
 socket.on('disconnect', function(){
     console.log('Agent socket disconnect');
