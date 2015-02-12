@@ -5,11 +5,10 @@ var config = require('./config.js');
 var bleacon = require('bleacon');
 var rest = require('rest');
 var when = require('when');
-var getmac = require('getmac');
-var nodefn = require('when/node');
 var mime = require('rest/interceptor/mime');
 var later = require('later');
 var io = require('socket.io-client');
+var network = require('network');
 
 var detectionService = require('./detection.service');
 
@@ -31,10 +30,13 @@ socket.on('connect', function(){
     console.log('Agent socket connect');
 
     // give the server details about ourselves
-    getmac.getMac(function(err, macAddress) {
-        socket.emit('register',  { customId : macAddress });
-    });
+    agentDataPromise()
+        .then(function(agent){
+            socket.emit('register', agent);
 
+        }, function(err){
+            console.log('error registering: %s', err);
+        });
 });
 socket.on('disconnect', function(){
     console.log('Agent socket disconnect');
@@ -93,23 +95,28 @@ function agentDataPromise() {
         range: config.agent.range
     }
 
-    nodefn.lift(getmac.getMac)()
-        .then(function (macAddress) {
-            // store for later use
-            agentId = macAddress;
+    network.get_active_interface(function(err, obj) {
 
-            agent.customId = macAddress;
-            return nodefn.lift(require('dns').lookup)(require('os').hostname());
-        })
-        .then(function (add) {
-            console.log('Ip Address: %s', add);
-            if (add && add.length > 0) {
-                agent.ipAddress = add[0];
-            }
-            defer.resolve(agent);
-        }, function (err) {
+        if (err) {
             defer.reject(err);
-        });
+        } else {
+
+            /* obj should be:
+
+             { name: 'eth0',
+             ip_address: '10.0.1.3',
+             mac_address: '56:e5:f9:e4:38:1d',
+             type: 'Wired',
+             netmask: '255.255.255.0',
+             gateway_ip: '10.0.1.1' }
+             */
+
+            agent.ipAddress = obj.ip_address;
+            agent.customId = obj.mac_address;
+
+            defer.resolve(agent);
+        }
+    });
 
     return defer.promise;
 }

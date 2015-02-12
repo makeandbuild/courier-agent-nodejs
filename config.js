@@ -10,8 +10,8 @@ module.exports = {
     baseUrl: 'http://courier.makeandbuildatl.com:9000',
 
     agent: {
-        name : 'Great Room',
-        location: 'Great Room',
+        name : 'Agent 1',
+        location: 'Polygon',
         range: 1.5 // range considered for an enter event
     },
     batchSendFrequency : 2, // number of seconds
