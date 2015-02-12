@@ -101,6 +101,9 @@ function agentDataPromise() {
             defer.reject(err);
         } else {
 
+            // store for later use
+            agentId = obj.mac_address;
+
             /* obj should be:
 
              { name: 'eth0',
