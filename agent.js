@@ -95,6 +95,9 @@ function agentDataPromise() {
 
     nodefn.lift(getmac.getMac)()
         .then(function (macAddress) {
+            // store for later use
+            agentId = macAddress;
+
             agent.customId = macAddress;
             return nodefn.lift(require('dns').lookup)(require('os').hostname());
         })
