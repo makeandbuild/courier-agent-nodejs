@@ -20,7 +20,7 @@
   ],
   "scripts": {},
   "dependencies": {
-    "bleacon": "^0.2.0",
+    "bleacon": "^0.2.1",
     "later": "^1.1.6",
     "lodash": "^3.1.0",
     "network": "^0.1.3",

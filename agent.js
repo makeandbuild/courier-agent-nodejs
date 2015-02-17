@@ -23,67 +23,51 @@ var agentSettings;
 // get responses as json objects instead strings
 var restClient = rest.wrap(mime);
 
-//[Lindsay Thurmond:2/5/15] TODO: only connect if socket in config
 var socket = io(config.baseUrl + '/agent');
 
 socket.on('connect', function(){
-    console.log('Agent socket connect');
+    console.log('Agent connected to server');
 
     // give the server details about ourselves
     agentDataPromise()
         .then(function(agent){
+            agentSettings = agent;
             socket.emit('register', agent);
 
         }, function(err){
             console.log('error registering: %s', err);
         });
+
+    socket.on('registerSuccess', function(payload){
+        console.log('Successfully registered with server');
+        // store info about ourself
+        agentSettings = payload;
+    });
+
+    socket.on('registerFailure', function(payload){
+       console.log('Failed to register with server: %s', payload.error);
+    });
+
 });
 socket.on('disconnect', function(){
-    console.log('Agent socket disconnect');
+    console.log('Agent disconnected from server');
 });
 
+startScanning();
 
-// get token
+// get token in case we need it
 restClient({
-    path: config.baseUrl + '/api/tokens',
-    headers: {"username": "test@test.com", "password": "test"}
+        path: config.baseUrl + '/api/tokens',
+        headers: {"username": "test@test.com", "password": "test"}
 })
-    // then register
     .then(function (response) {
         token = response.entity.token;
         console.log(token);
         tokenExpires = response.entity.expires;
-
-        return agentDataPromise();
     })
-    .then(function (agentData) {
-        console.log('POSTing ' + JSON.stringify(agentData));
-
-        return restClient({ method: 'POST', path: config.baseUrl + '/api/agents', entity : agentData,
-            headers: { "x-access-token": token , "Content-Type" : 'application/json'}});
-    })
-    .then(function (response) {
-
-        console.log('Agent response: ' + JSON.stringify(response.entity));
-
-        var statusCode = response.status.code;
-        if(statusCode >= 200 && statusCode < 300) {
-//            console.log('Registered agent: ' + JSON.stringify(response.entity));
-        } else {
-            console.log('Failed to register agent.  Status code: '  + response.status.code);
-        }
-
-        // store info about ourself
-        agentSettings = response.entity;
-
-        startScanning();
-
-    }, function (err) {
-        console.log('Error: ' + JSON.stringify(err));
-    }).otherwise(function (err) {
+    .otherwise(function (err) {
         console.log('Unexpected Error: ' + JSON.stringify(err));
     });
-
 
 function agentDataPromise() {
     var defer = when.defer();
@@ -159,14 +143,21 @@ function sendDetections() {
     // expire old detections
     detectionService.removedExpired();
 
+    if (!socket.connected) {
+        console.log("Can't send detections until socket is connected");
+        return;
+    }
+
     var detections = detectionService.getDetections();
-//    console.log("Sending Detections: " + JSON.stringify(detections));
     if (detections.length == 0) {
         // we need to identify which agent doesn't see any detections
         detections.push({agentId: agentSettings.customId});
     }
 
+    console.log("Sending Detections: " + JSON.stringify(detections));
+
     if (config.detectionProtocol === 'HTTP') {
+        //[Lindsay Thurmond:2/17/15] TODO: make sure we have a token & get one if not (in case server was down when we asked for the token originally)
         restClient({ method: 'POST', path: config.baseUrl + '/api/beacondetections', entity: detections,
             headers: { "x-access-token": token, "Content-Type": 'application/json'}});
     }
