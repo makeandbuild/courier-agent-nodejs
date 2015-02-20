@@ -8,16 +8,11 @@ The Courier project is broken down into four pieces - Agent, Engine, Server & Ad
 For a high level overview including architecture diagrams refer to our blog post [Courier iBeacon Implementation](http://makeandbuild.com/blog/post/courier-ibeacon-implementation)
 
 ## Summary
-
 Nodejs implementation for detecting iBeacon BLE signals and sending detections to a central server for processing.
-
-We are run this code on a Raspberry Pi but you could run it on any device that supports BLE detections (ie your Mac development environment).
-
-Utilizes [node-bleacon](https://github.com/sandeepmistry/node-bleacon) project for BLE discovery of iBeacons.  
 
 Instructions for installing and running on a Raspberry Pi can be found within raspberry-pi-instruction.md
 
-We chose to write the agent code in Node.js because we could run it on our Macs without needing to install BlueZ and it also runs on a Raspberry Pi.  Since we aren’t using an iOS device with built in detection processing we needed to write our own or find a Node library that could do it for us.  We opted for the later and used the open source node-bleacon NPM module to convert the raw BLE signals to usable JSON data for us.  Using node-bleacon we can start listening for detections with the following. 
+We chose to write the agent code in Node.js because we could run it on our Macs without needing to install BlueZ and it also runs on a Raspberry Pi.  Since we aren’t using an iOS device with built in detection processing we needed to write our own or find a Node library that could do it for us.  We opted for the later and used the open source [node-bleacon](https://github.com/sandeepmistry/node-bleacon) NPM module to convert the raw BLE signals to usable JSON data for us.  Using node-bleacon we can start listening for detections with the following. 
 
 ```javascript
 var bleacon = require('bleacon');
