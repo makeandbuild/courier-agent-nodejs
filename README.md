@@ -66,3 +66,10 @@ npm install
 ```
 node agent.js
 ```
+
+## Roadmap
+This repo is a work in progress - IT IS NOT PRODUCTION READY. 
+
+This is subject to change, but the items that we plan to work on next are the following:
+
+- Use authentication wtih socket.io connection to the server
