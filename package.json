@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "description": "Agent for detecting beacons and sending detection to M&B Courier service.  Built using nodejs",
   "private": true,
-  "author": "Tom Elrod <tom.elrod@makeandbuild.com>",
+  "author": "Lindsay Thurmond <lindsay.thurmond@makeandbuild.com>",
   "contributors": [
     {
-      "name": "Lindsay Thurmond",
-      "email": "lindsay.thurmond@makeandbuild.com"
+      "name": "Tom Elrod",
+      "email": "tom.elrod@gmail.com"
     }
   ],
   "repository": {
