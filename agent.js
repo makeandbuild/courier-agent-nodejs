@@ -23,7 +23,6 @@ var agentSettings;
 // get responses as json objects instead strings
 var restClient = rest.wrap(mime);
 
-//[Lindsay Thurmond:2/5/15] TODO: only connect if socket in config
 var socket = io(config.baseUrl + '/agent');
 
 socket.on('connect', function(){
